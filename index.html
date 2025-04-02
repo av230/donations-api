@@ -47,7 +47,7 @@
   <script>
     async function fetchDonations() {
       try {
-        const res = await fetch("http://localhost:3001/donations");
+        const res = await fetch("https://website-uyhs.onrender.com/donations");
         const data = await res.json();
 
         const table = document.getElementById("donationTable");
