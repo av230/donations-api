@@ -355,7 +355,11 @@ const institutionData = await institutionResponse.json();
                 updateInstitutionInfo(institutionData);
                 
                 // טעינת סטטיסטיקות
-                const statsResponse = await fetch('/api/institution/stats');
+                const statsResponse = await fetch('/api/institution/stats', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
                 if (!statsResponse.ok) throw new Error('Failed to load stats');
                 const statsData = await statsResponse.json();
                 
@@ -363,7 +367,11 @@ const institutionData = await institutionResponse.json();
                 updateStatistics(statsData);
                 
                 // טעינת תרומות אחרונות
-                const donationsResponse = await fetch('/api/institution/donations/recent');
+                const donationsResponse = await fetch('/api/institution/donations/recent', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
                 if (!donationsResponse.ok) throw new Error('Failed to load recent donations');
                 const donationsData = await donationsResponse.json();
                 
@@ -371,7 +379,11 @@ const institutionData = await institutionResponse.json();
                 updateRecentDonations(donationsData);
                 
                 // טעינת תורמים מובילים
-                const topDonorsResponse = await fetch('/api/institution/donors/top');
+                const topDonorsResponse = await fetch('/api/institution/donors/top', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
                 if (!topDonorsResponse.ok) throw new Error('Failed to load top donors');
                 const topDonorsData = await topDonorsResponse.json();
                 
@@ -570,8 +582,15 @@ const institutionData = await institutionResponse.json();
         
         // טעינת רשימת תורמים עבור המודל
         async function loadDonorsList() {
+            const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+            if (!user || !user.institution_id) return;
             try {
-                const response = await fetch('/api/institution/donors');
+                const response = await fetch('/api/institution/donors', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
+
                 if (!response.ok) throw new Error('Failed to load donors');
                 const donors = await response.json();
                 
@@ -610,7 +629,8 @@ const institutionData = await institutionResponse.json();
                 const response = await fetch('/api/institution/donations', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        
                     },
                     body: JSON.stringify(donationData)
                 });
