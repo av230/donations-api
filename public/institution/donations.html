@@ -476,12 +476,18 @@
             try {
                 // טעינת פרטי המוסד
                 const institutionResponse = await fetch('/api/institution/profile');
+
                 const institutionData = await institutionResponse.json();
                 document.getElementById('institutionName').textContent = institutionData.name;
                 document.getElementById('userName').textContent = institutionData.user_name || 'משתמש';
 
                 // טעינת סטטיסטיקות
-                const statsResponse = await fetch('/api/institution/donors/stats');
+                const statsResponse = await fetch();fetch('/api/institution/donors/stats', {
+  headers: {
+    'X-User': JSON.stringify(user)
+  }
+});
+
                 const statsData = await statsResponse.json();
                 updateStatistics(statsData);
 
@@ -530,7 +536,13 @@
             document.getElementById('noDonorsMessage').style.display = 'none';
 
             try {
-                const response = await fetch('/api/institution/donors');
+                // const response = await fetch('/api/institution/donors');
+
+                const response = await fetch();fetch('/api/institution/donors/stats', {
+  headers: {
+    'X-User': JSON.stringify(user)
+  }
+});
                 donors = await response.json();
                 
                 if (donors.length === 0) {

@@ -578,7 +578,13 @@ app.get('/institution/donations', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'institution', 'donations.html'));
 });
 app.get('/api/institution/stats', async (req, res) => {
-  const institutionId = 1; // ← לשלב ראשון תכניס ידנית את institution_id או תוציא מהטוקן בעתיד
+   const user = JSON.parse(req.headers['x-user'] || '{}');
+  const institutionId = user.institution_id;
+
+  if (!institutionId) {
+    return res.status(400).json({ error: 'Missing institution ID' });
+  }
+
 
   try {
     const totalDonors = await pool.query(`
@@ -619,8 +625,13 @@ app.get('/api/institution/stats', async (req, res) => {
   }
 });
 app.get('/api/institution/donations/recent', async (req, res) => {
-  const institutionId = 1;
+  const user = JSON.parse(req.headers['x-user'] || '{}');
+  const institutionId = user.institution_id;
 
+  if (!institutionId) {
+    return res.status(400).json({ error: 'Missing institution ID' });
+  }
+  
   try {
     const result = await pool.query(`
       SELECT d.id, donors.name as donor_name, d.amount, d.date as donation_date, d.notes, d.payment_method, d.receipt_number
@@ -638,8 +649,13 @@ app.get('/api/institution/donations/recent', async (req, res) => {
   }
 });
 app.get('/api/institution/donors/top', async (req, res) => {
-  const institutionId = 1;
+  const user = JSON.parse(req.headers['x-user'] || '{}');
+  const institutionId = user.institution_id;
 
+  if (!institutionId) {
+    return res.status(400).json({ error: 'Missing institution ID' });
+  }
+  
   try {
     const result = await pool.query(`
       SELECT donors.id, donors.name as donor_name, SUM(donations.amount) as total_amount
