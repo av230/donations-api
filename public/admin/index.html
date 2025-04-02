@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול מוסדות - מערכת ניהול עמותות</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .sidebar {
+            height: 100vh;
+            background-color: #343a40;
+            color: white;
+            position: fixed;
+            right: 0;
+            top: 0;
+        }
+        .sidebar-header {
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+        .sidebar-menu a {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-menu a.active {
+            border-right: 3px solid #007bff;
+        }
+        .sidebar-menu i {
+            margin-left: 10px;
+        }
+        .main-content {
+            margin-right: 250px;
+            padding: 20px;
+        }
+        .stats-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .institution-type {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .type-amuta {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .type-chevra {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- סייד-בר (תפריט צד) -->
+    <div class="sidebar" style="width: 250px;">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-building me-2"></i> ניהול מערכת</h3>
+        </div>
+        <ul class="sidebar-menu mt-4">
+            <li>
+                <a href="/admin" class="active">
+                    <i class="bi bi-speedometer2"></i> לוח בקרה
+                </a>
+            </li>
+            <li>
+                <a href="/admin/users">
+                    <i class="bi bi-people"></i> ניהול משתמשים
+                </a>
+            </li>
+            <li>
+                <a href="/admin/institutions">
+                    <i class="bi bi-building"></i> ניהול מוסדות
+                </a>
+            </li>
+            <li>
+                <a href="/admin/reports">
+                    <i class="bi bi-bar-chart"></i> דוחות וסטטיסטיקות
+                </a>
+            </li>
+            <li>
+                <a href="/admin/settings">
+                    <i class="bi bi-gear"></i> הגדרות מערכת
+                </a>
+            </li>
+            <li class="mt-5">
+                <a href="#" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i> התנתקות
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- תוכן ראשי -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>ניהול מוסדות</h2>
+            <div class="user-info">
+                <span>שלום, </span>
+                <span class="fw-bold" id="userName">מנהל המערכת</span>
+                <img src="https://via.placeholder.com/32" class="rounded-circle ms-2" alt="Admin" width="32" height="32">
+            </div>
+        </div>
+
+        <!-- קלפי סטטיסטיקה -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card bg-primary text-white">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">סה"כ מוסדות</h5>
+                            <h2 id="totalInstitutions">0</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-building fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card bg-success text-white">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">מוסדות פעילים</h5>
+                            <h2 id="activeInstitutions">0</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card bg-info text-white">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">סה"כ משתמשים</h5>
+                            <h2 id="totalUsers">0</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-people fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card bg-warning text-dark">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">מוסדות חדשים החודש</h5>
+                            <h2 id="newInstitutions">0</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-calendar3 fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- פילטרים וחיפוש -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="חיפוש לפי שם, כתובת, איש קשר...">
+                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filterInstitutionType">
+                        <option value="all">כל סוגי המוסדות</option>
+                        <option value="עמותה">עמותות</option>
+                        <option value="חברה לתועלת הציבור">חברות לתועלת הציבור</option>
+                        <option value="מוסד ציבורי">מוסד ציבורי</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sortBy">
+                        <option value="name">מיון לפי שם</option>
+                        <option value="date">מיון לפי תאריך</option>
+                        <option value="type">מיון לפי סוג</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-success" id="exportBtn">
+                            <i class="bi bi-download"></i> ייצוא לאקסל
+                        </button>
+                        <button type="button" class="btn btn-outline-info" id="printBtn">
+                            <i class="bi bi-printer"></i> הדפסה
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-primary" id="addInstitutionBtn">
+                        <i class="bi bi-plus-circle"></i> הוספת מוסד חדש
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- טעינת נתונים -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">טוען...</span>
+            </div>
+            <p class="mt-2">טוען נתונים...</p>
+        </div>
+
+        <!-- רשימת המוסדות -->
+        <div id="institutionsContainer" class="row">
+            <!-- כאן יוצגו כרטיסי המוסדות באמצעות JavaScript -->
+        </div>
+
+        <!-- הודעה כשאין מוסדות -->
+        <div id="noInstitutionsMessage" class="alert alert-info text-center" style="display: none;">
+            <i class="bi bi-info-circle"></i> לא נמצאו מוסדות. ניתן להוסיף מוסד חדש באמצעות כפתור "הוספת מוסד חדש".
+        </div>
+
+        <!-- ניווט בעמודים -->
+        <nav aria-label="ניווט בעמודים" class="mt-4">
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- דפי הניווט יוצגו כאן -->
+            </ul>
+        </nav>
+    </div>
+
+    <!-- מודל להוספה/עריכה של מוסד -->
+    <div class="modal fade" id="institutionModal" tabindex="-1" aria-labelledby="institutionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="institutionModalLabel">הוספת מוסד חדש</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="institutionForm">
+                        <input type="hidden" id="institutionId">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">שם המוסד</label>
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="registrationNumber" class="form-label">מספר רישום</label>
+                                <input type="text" class="form-control" id="registrationNumber" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="contactName" class="form-label">איש קשר</label>
+                                <input type="text" class="form-control" id="contactName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactPhone" class="form-label">טלפון</label>
+                                <input type="tel" class="form-control" id="contactPhone" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">כתובת</label>
+                            <input type="text" class="form-control" id="address" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="website" class="form-label">אתר אינטרנט</label>
+                            <input type="url" class="form-control" id="website">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="institutionType" class="form-label">סוג מוסד</label>
+                                <select class="form-select" id="institutionType" required>
+                                    <option value="">בחר...</option>
+                                    <option value="עמותה">עמותה</option>
+                                    <option value="חברה לתועלת הציבור">חברה לתועלת הציבור</option>
+                                    <option value="מוסד ציבורי">מוסד ציבורי</option>
+                                    <option value="אחר">אחר</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="authorizationLevel" class="form-label">רמת הרשאה</label>
+                                <select class="form-select" id="authorizationLevel" required>
+                                    <option value="">בחר...</option>
+                                    <option value="admin">אדמין</option>
+                                    <option value="standard">סטנדרט</option>
+                                    <option value="viewer">צפייה בלבד</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="packageType" class="form-label">סוג חבילה</label>
+                                <select class="form-select" id="packageType" required>
+                                    <option value="">בחר...</option>
+                                    <option value="premium">פרימיום</option>
+                                    <option value="basic">בסיסי</option>
+                                    <option value="free">חינם</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxUsers" class="form-label">מספר משתמשים מקסימלי</label>
+                            <input type="number" class="form-control" id="maxUsers" min="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-primary" id="saveInstitutionBtn">שמור</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- מודל לצפייה בפרטי מוסד -->
+    <div class="modal fade" id="viewInstitutionModal" tabindex="-1" aria-labelledby="viewInstitutionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewInstitutionModalLabel">פרטי מוסד</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h5>פרטים כלליים</h5>
+                                <p><strong>שם המוסד:</strong> <span id="view-name"></span></p>
+                                <p><strong>מספר רישום:</strong> <span id="view-registrationNumber"></span></p>
+                                <p><strong>סוג מוסד:</strong> <span id="view-institutionType"></span></p>
+                                <p><strong>איש קשר:</strong> <span id="view-contactName"></span></p>
+                                <p><strong>טלפון:</strong> <span id="view-contactPhone"></span></p>
+                                <p><strong>כתובת:</strong> <span id="view-address"></span></p>
+                                <p><strong>אתר אינטרנט:</strong> <a id="view-website" href="#" target="_blank"></a></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h5>נתוני מערכת</h5>
+                                <p><strong>רמת הרשאה:</strong> <span id="view-authorizationLevel"></span></p>
+                                <p><strong>סוג חבילה:</strong> <span id="view-packageType"></span></p>
+                                <p><strong>מספר משתמשים מקסימלי:</strong> <span id="view-maxUsers"></span></p>
+                                <p><strong>תאריך יצירה:</strong> <span id="view-createdAt"></span></p>
+                                <p><strong>עדכון אחרון:</strong> <span id="view-updatedAt"></span></p>
+                            </div>
+                            <div class="mb-3">
+                                <h5>סטטיסטיקות</h5>
+                                <p><strong>משתמשים פעילים:</strong> <span id="view-activeUsers">-</span></p>
+                                <p><strong>מספר תורמים:</strong> <span id="view-donorsCount">-</span></p>
+                                <p><strong>סה"כ תרומות:</strong> <span id="view-donationsCount">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+                    <button type="button" class="btn btn-primary" id="editFromViewBtn">
+                        <i class="bi bi-pencil"></i> עריכה
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- מודל אישור מחיקה -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">אישור מחיקה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                </div>
+                <div class="modal-body">
+                    <p>האם אתה בטוח שברצונך למחוק את המוסד <span id="deleteInstitutionName" class="fw-bold"></span>?</p>
+                    <p class="text-danger">פעולה זו אינה ניתנת לביטול.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">כן, מחק</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin/institutions.js"></script>
+</body>
+</html>
