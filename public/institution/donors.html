@@ -475,13 +475,28 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // טעינת פרטי המוסד
-                const institutionResponse = await fetch('/api/institution/profile');
+                const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+                if (!user || !user.institution_id) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const institutionResponse = await fetch('/api/institution/profile', {
+      headers: {
+        'x-user': JSON.stringify(user)
+      }
+    });
                 const institutionData = await institutionResponse.json();
                 document.getElementById('institutionName').textContent = institutionData.name;
                 document.getElementById('userName').textContent = institutionData.user_name || 'משתמש';
 
                 // טעינת סטטיסטיקות
-                const statsResponse = await fetch('/api/institution/donors/stats');
+                
+                const statsResponse = await fetch('/api/institution/donors/stats', {
+      headers: {
+        'x-user': JSON.stringify(user)
+      }
+    });
+
                 const statsData = await statsResponse.json();
                 updateStatistics(statsData);
 
@@ -530,7 +545,19 @@
             document.getElementById('noDonorsMessage').style.display = 'none';
 
             try {
-                const response = await fetch('/api/institution/donors');
+                const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+                if (!user || !user.institution_id) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const response = await fetch('/api/institution/donors', {
+      headers: {
+        'x-user': JSON.stringify(user)
+      }
+    });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
                 donors = await response.json();
                 
                 if (donors.length === 0) {
