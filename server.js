@@ -577,6 +577,87 @@ app.get('/institution/donors', (req, res) => {
 app.get('/institution/donations', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'institution', 'donations.html'));
 });
+app.get('/api/institution/stats', async (req, res) => {
+  const institutionId = 1; // ← לשלב ראשון תכניס ידנית את institution_id או תוציא מהטוקן בעתיד
+
+  try {
+    const totalDonors = await pool.query(`
+      SELECT COUNT(*) FROM donors WHERE institution_id = $1
+    `, [institutionId]);
+
+    const totalDonations = await pool.query(`
+      SELECT COUNT(*) FROM donations WHERE institution_id = $1
+    `, [institutionId]);
+
+    const totalAmount = await pool.query(`
+      SELECT SUM(amount) FROM donations WHERE institution_id = $1 AND date >= date_trunc('month', CURRENT_DATE)
+    `, [institutionId]);
+
+    const avgDonation = await pool.query(`
+      SELECT AVG(amount) FROM donations WHERE institution_id = $1 AND date >= date_trunc('month', CURRENT_DATE)
+    `, [institutionId]);
+
+    // סכומים לפי חודש
+    const monthly = await pool.query(`
+      SELECT EXTRACT(MONTH FROM date) as month, COUNT(*) as count, SUM(amount) as total_amount
+      FROM donations
+      WHERE institution_id = $1 AND date >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY month
+      ORDER BY month
+    `, [institutionId]);
+
+    res.json({
+      total_donors: parseInt(totalDonors.rows[0].count),
+      total_donations: parseInt(totalDonations.rows[0].count),
+      total_amount: parseFloat(totalAmount.rows[0].sum || 0),
+      average_donation: parseFloat(avgDonation.rows[0].avg || 0),
+      monthly_donations: monthly.rows
+    });
+  } catch (err) {
+    console.error("❌ שגיאה בסטטיסטיקות:", err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+app.get('/api/institution/donations/recent', async (req, res) => {
+  const institutionId = 1;
+
+  try {
+    const result = await pool.query(`
+      SELECT d.id, donors.name as donor_name, d.amount, d.date as donation_date, d.notes, d.payment_method, d.receipt_number
+      FROM donations d
+      JOIN donors ON d.donor_id = donors.id
+      WHERE d.institution_id = $1
+      ORDER BY d.date DESC
+      LIMIT 10
+    `, [institutionId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ שגיאה בטעינת תרומות אחרונות:", err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+app.get('/api/institution/donors/top', async (req, res) => {
+  const institutionId = 1;
+
+  try {
+    const result = await pool.query(`
+      SELECT donors.id, donors.name as donor_name, SUM(donations.amount) as total_amount
+      FROM donors
+      JOIN donations ON donations.donor_id = donors.id
+      WHERE donors.institution_id = $1
+      GROUP BY donors.id, donors.name
+      ORDER BY total_amount DESC
+      LIMIT 5
+    `, [institutionId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ שגיאה בטעינת תורמים מובילים:", err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
 // טיפול בנתיבים לא מוגדרים - החזרת שגיאה 404
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
