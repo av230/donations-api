@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול תורמים - מערכת ניהול עמותות</title>
+    <title>ניהול תרומות - מערכת ניהול עמותות</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
         .sidebar {
             height: 100vh;
@@ -49,44 +49,58 @@
             margin-right: 250px;
             padding: 20px;
         }
-        .donor-card {
-            transition: all 0.3s;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .donor-card:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transform: translateY(-5px);
-        }
-        .donor-stats {
-            font-size: 0.85rem;
-            margin-top: 10px;
-            color: #6c757d;
-        }
-        .tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            margin-right: 5px;
-            background-color: #e9ecef;
-        }
-        .donor-actions {
-            margin-top: 15px;
-            text-align: center;
-        }
-        .donor-image {
-            width: 70px;
-            height: 70px;
-            margin-bottom: 10px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
         .filter-section {
             background-color: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        .donation-card {
+            transition: all 0.3s;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .donation-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+        }
+        .card-header-donation {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+        }
+        .donation-date {
+            font-weight: bold;
+        }
+        .donation-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .table-donations th, 
+        .table-donations td {
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -104,12 +118,12 @@
                 </a>
             </li>
             <li>
-                <a href="/institution/donors" class="active">
+                <a href="/institution/donors">
                     <i class="bi bi-people"></i> ניהול תורמים
                 </a>
             </li>
             <li>
-                <a href="/institution/donations">
+                <a href="/institution/donations" class="active">
                     <i class="bi bi-cash-stack"></i> ניהול תרומות
                 </a>
             </li>
@@ -134,7 +148,7 @@
     <!-- תוכן ראשי -->
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>ניהול תורמים</h2>
+            <h2>ניהול תרומות</h2>
             <div class="user-info">
                 <span>שלום, </span>
                 <span class="fw-bold" id="userName">שם המשתמש</span>
@@ -147,44 +161,47 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="input-group">
-                        <input type="text" class="form-control" id="searchInput" placeholder="חיפוש לפי שם, טלפון, אימייל...">
+                        <input type="text" class="form-control" id="searchInput" placeholder="חיפוש לפי תורם, סכום, תאריך...">
                         <button class="btn btn-outline-secondary" type="button" id="searchBtn">
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <select class="form-select" id="statusFilter">
-                        <option value="all">כל הסטטוסים</option>
-                        <option value="active">פעילים</option>
-                        <option value="inactive">לא פעילים</option>
+                    <select class="form-select" id="filterPaymentMethod">
+                        <option value="all">כל אמצעי התשלום</option>
+                        <option value="credit">כרטיס אשראי</option>
+                        <option value="cash">מזומן</option>
+                        <option value="check">צ'ק</option>
+                        <option value="bank">העברה בנקאית</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <select class="form-select" id="sortBy">
-                        <option value="name">מיון לפי שם</option>
-                        <option value="date">מיון לפי תאריך</option>
-                        <option value="amount">מיון לפי סכום תרומות</option>
+                        <option value="date_desc">תאריך (מהחדש לישן)</option>
+                        <option value="date_asc">תאריך (מהישן לחדש)</option>
+                        <option value="amount_desc">סכום (מהגבוה לנמוך)</option>
+                        <option value="amount_asc">סכום (מהנמוך לגבוה)</option>
                     </select>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-outline-primary" id="importDonorsBtn">
-                            <i class="bi bi-upload"></i> ייבוא תורמים
-                        </button>
-                        <button type="button" class="btn btn-outline-success" id="exportDonorsBtn">
+                        <button type="button" class="btn btn-outline-success" id="exportBtn">
                             <i class="bi bi-download"></i> ייצוא לאקסל
                         </button>
-                        <button type="button" class="btn btn-outline-info" id="printDonorsBtn">
+                        <button type="button" class="btn btn-outline-info" id="printBtn">
                             <i class="bi bi-printer"></i> הדפסה
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="receiptBtn">
+                            <i class="bi bi-receipt"></i> הדפסת קבלות
                         </button>
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
-                    <button class="btn btn-primary" id="addDonorBtn">
-                        <i class="bi bi-person-plus"></i> הוספת תורם חדש
+                    <button class="btn btn-primary" id="addDonationBtn">
+                        <i class="bi bi-plus-circle"></i> הוספת תרומה חדשה
                     </button>
                 </div>
             </div>
@@ -195,16 +212,24 @@
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title">סה"כ תורמים</h5>
-                        <h2 id="totalDonors">0</h2>
+                        <h5 class="card-title">סה"כ תרומות</h5>
+                        <h2 id="totalDonations">0</h2>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title">תורמים חדשים החודש</h5>
-                        <h2 id="newDonors">0</h2>
+                        <h5 class="card-title">סה"כ סכום</h5>
+                        <h2 id="totalAmount">₪0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">תרומות החודש</h5>
+                        <h2 id="monthlyDonations">0</h2>
                     </div>
                 </div>
             </div>
@@ -216,30 +241,48 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">סה"כ מתרומות</h5>
-                        <h2 id="totalAmount">₪0</h2>
-                    </div>
+        </div>
+
+        <!-- רשימת תרומות -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">טוען...</span>
+            </div>
+            <p class="mt-2">טוען נתוני תרומות...</p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">רשימת תרומות</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-donations mb-0">
+                        <thead>
+                            <tr>
+                                <th>תאריך</th>
+                                <th>תורם</th>
+                                <th>סכום</th>
+                                <th>אמצעי תשלום</th>
+                                <th>מספר קבלה</th>
+                                <th>סטטוס</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donationsTableBody">
+                            <!-- תוכן הטבלה יוזן דינמית ע"י JavaScript -->
+                            <tr>
+                                <td colspan="7" class="text-center py-4">טוען נתונים...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- רשימת תורמים -->
-        <div id="loadingSpinner" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">טוען...</span>
-            </div>
-            <p class="mt-2">טוען רשימת תורמים...</p>
-        </div>
-
-        <div id="donorsContainer" class="row" style="display: none;">
-            <!-- כרטיסי התורמים יוצגו כאן -->
-        </div>
-
-        <div id="noDonorsMessage" class="alert alert-info text-center" style="display: none;">
-            <i class="bi bi-info-circle"></i> לא נמצאו תורמים. ניתן להוסיף תורם חדש באמצעות כפתור "הוספת תורם חדש".
+        <!-- הודעה כשאין תרומות -->
+        <div id="noDonationsMessage" class="alert alert-info text-center" style="display: none;">
+            <i class="bi bi-info-circle"></i> לא נמצאו תרומות. ניתן להוסיף תרומה חדשה באמצעות כפתור "הוספת תרומה חדשה".
         </div>
 
         <!-- ניווט בעמודים -->
@@ -250,190 +293,149 @@
         </nav>
     </div>
 
-    <!-- מודל להוספת/עריכת תורם -->
-    <div class="modal fade" id="donorModal" tabindex="-1" aria-labelledby="donorModalLabel" aria-hidden="true">
+    <!-- מודל להוספת/עריכת תרומה -->
+    <div class="modal fade" id="donationModal" tabindex="-1" aria-labelledby="donationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="donorModalLabel">הוספת תורם חדש</h5>
+                    <h5 class="modal-title" id="donationModalLabel">הוספת תרומה חדשה</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="donorForm">
-                        <input type="hidden" id="donorId">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="firstName" class="form-label">שם פרטי</label>
-                                <input type="text" class="form-control" id="firstName" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="lastName" class="form-label">שם משפחה</label>
-                                <input type="text" class="form-control" id="lastName" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="email" class="form-label">דוא"ל</label>
-                                <input type="email" class="form-control" id="email">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="phone" class="form-label">טלפון</label>
-                                <input type="tel" class="form-control" id="phone">
-                            </div>
-                        </div>
+                    <form id="donationForm">
+                        <input type="hidden" id="donationId">
+                        
                         <div class="mb-3">
-                            <label for="address" class="form-label">כתובת</label>
-                            <input type="text" class="form-control" id="address">
+                            <label for="donorSelect" class="form-label">בחר תורם</label>
+                            <select class="form-select" id="donorSelect" required>
+                                <option value="">בחר תורם...</option>
+                                <!-- אפשרויות יוזנו דינמית -->
+                            </select>
+                            <div class="form-text">
+                                <a href="#" id="addNewDonorLink">הוסף תורם חדש</a>
+                            </div>
                         </div>
+                        
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="birthDate" class="form-label">תאריך לידה</label>
-                                <input type="date" class="form-control" id="birthDate">
+                                <label for="amount" class="form-label">סכום התרומה</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₪</span>
+                                    <input type="number" class="form-control" id="amount" min="1" step="1" required>
+                                </div>
                             </div>
+                            
                             <div class="col-md-6">
-                                <label for="gender" class="form-label">מגדר</label>
-                                <select class="form-select" id="gender">
+                                <label for="donationDate" class="form-label">תאריך התרומה</label>
+                                <input type="date" class="form-control" id="donationDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="paymentMethod" class="form-label">אמצעי תשלום</label>
+                                <select class="form-select" id="paymentMethod" required>
                                     <option value="">בחר...</option>
-                                    <option value="male">זכר</option>
-                                    <option value="female">נקבה</option>
-                                    <option value="other">אחר</option>
+                                    <option value="credit">כרטיס אשראי</option>
+                                    <option value="cash">מזומן</option>
+                                    <option value="check">צ'ק</option>
+                                    <option value="bank">העברה בנקאית</option>
                                 </select>
                             </div>
+                            
+                            <div class="col-md-6">
+                                <label for="receiptNumber" class="form-label">מספר קבלה</label>
+                                <input type="text" class="form-control" id="receiptNumber">
+                                <div class="form-text">אם לא תזין, מספר קבלה יווצר אוטומטית</div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="tags" class="form-label">תגיות (הפרדה בפסיקים)</label>
-                            <input type="text" class="form-control" id="tags" placeholder="לדוגמה: קבוע, תורם גדול, אירוע התרמה">
-                        </div>
+                        
                         <div class="mb-3">
                             <label for="notes" class="form-label">הערות</label>
                             <textarea class="form-control" id="notes" rows="3"></textarea>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="isActive" checked>
-                            <label class="form-check-label" for="isActive">תורם פעיל</label>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="sendReceipt">
+                                <label class="form-check-label" for="sendReceipt">שלח קבלה במייל</label>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="button" class="btn btn-primary" id="saveDonorBtn">שמור</button>
+                    <button type="button" class="btn btn-primary" id="saveDonationBtn">שמור</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- מודל לצפייה בפרטי תורם ותרומות -->
-    <div class="modal fade" id="donorDetailsModal" tabindex="-1" aria-labelledby="donorDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <!-- מודל לצפייה בפרטי תרומה -->
+    <div class="modal fade" id="viewDonationModal" tabindex="-1" aria-labelledby="viewDonationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="donorDetailsModalLabel">פרטי תורם</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="viewDonationModalLabel">פרטי תרומה</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="סגור"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card mb-3">
-                                <div class="card-body text-center">
-                                    <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" id="donorDetailImage" width="150" height="150">
-                                    <h4 id="donorDetailName">שם התורם</h4>
-                                    <p class="text-muted" id="donorDetailEmail">email@example.com</p>
-                                    <p class="text-muted" id="donorDetailPhone">050-1234567</p>
-                                    <div id="donorDetailTags" class="mb-3">
-                                        <!-- תגיות יוצגו כאן -->
-                                    </div>
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-primary" id="donorDetailEditBtn">
-                                            <i class="bi bi-pencil"></i> עריכת פרטים
-                                        </button>
-                                        <button class="btn btn-outline-primary" id="donorDetailAddDonationBtn">
-                                            <i class="bi bi-plus-circle"></i> הוספת תרומה
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">פרטים נוספים</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p><strong>כתובת:</strong> <span id="donorDetailAddress">-</span></p>
-                                    <p><strong>תאריך לידה:</strong> <span id="donorDetailBirthDate">-</span></p>
-                                    <p><strong>מגדר:</strong> <span id="donorDetailGender">-</span></p>
-                                    <p><strong>סטטוס:</strong> <span id="donorDetailStatus">-</span></p>
-                                    <p><strong>תאריך הצטרפות:</strong> <span id="donorDetailJoinDate">-</span></p>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">הערות</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p id="donorDetailNotes">-</p>
-                                </div>
-                            </div>
+                    <div class="text-center mb-4">
+                        <h3 class="donation-amount" id="viewAmount">₪1,000</h3>
+                        <div class="badge bg-success" id="viewStatus">הושלם</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>תורם:</strong>
                         </div>
-                        <div class="col-md-8">
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">סיכום תרומות</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row text-center">
-                                        <div class="col-md-3">
-                                            <h5>סה"כ תרומות</h5>
-                                            <h3 id="donorDetailTotalDonations">0</h3>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h5>סה"כ סכום</h5>
-                                            <h3 id="donorDetailTotalAmount">₪0</h3>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h5>תרומה אחרונה</h5>
-                                            <h3 id="donorDetailLastDonation">-</h3>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h5>תרומה ממוצעת</h5>
-                                            <h3 id="donorDetailAvgDonation">₪0</h3>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title mb-0">היסטוריית תרומות</h5>
-                                    <button class="btn btn-sm btn-outline-primary" id="printDonationsBtn">
-                                        <i class="bi bi-printer"></i> הדפסה
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped table-hover mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">תאריך</th>
-                                                    <th scope="col">סכום</th>
-                                                    <th scope="col">אמצעי תשלום</th>
-                                                    <th scope="col">קבלה</th>
-                                                    <th scope="col">הערות</th>
-                                                    <th scope="col">פעולות</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="donorDonationsTable">
-                                                <!-- נתוני התרומות יוצגו כאן -->
-                                                <tr>
-                                                    <td colspan="6" class="text-center py-3">טוען נתוני תרומות...</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-6" id="viewDonorName">
+                            ישראל ישראלי
                         </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>תאריך:</strong>
+                        </div>
+                        <div class="col-6" id="viewDonationDate">
+                            01/01/2023
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>אמצעי תשלום:</strong>
+                        </div>
+                        <div class="col-6" id="viewPaymentMethod">
+                            כרטיס אשראי
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>מספר קבלה:</strong>
+                        </div>
+                        <div class="col-6" id="viewReceiptNumber">
+                            REC-12345
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>הערות:</strong>
+                        <p id="viewNotes" class="mt-2">
+                            הערות לתרומה...
+                        </p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+                    <button type="button" class="btn btn-primary" id="editDonationBtn">
+                        <i class="bi bi-pencil"></i> עריכה
+                    </button>
+                    <button type="button" class="btn btn-success" id="viewSendReceiptBtn">
+                        <i class="bi bi-envelope"></i> שלח קבלה
+                    </button>
                 </div>
             </div>
         </div>
@@ -445,11 +447,11 @@
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">אישור מחיקה</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="סגור"></button>
                 </div>
                 <div class="modal-body">
-                    <p>האם אתה בטוח שברצונך למחוק את התורם <span id="deleteDonorName" class="fw-bold"></span>?</p>
-                    <p class="text-danger">פעולה זו תמחק גם את כל התרומות המשויכות לתורם זה!</p>
+                    <p>האם אתה בטוח שברצונך למחוק את התרומה הזו?</p>
+                    <p class="text-danger">פעולה זו אינה ניתנת לביטול!</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
@@ -460,616 +462,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // הגדרת משתנים גלובליים
-        let donors = [];
-        let currentDonorId = null;
-        let currentPage = 1;
-        const itemsPerPage = 12;
-
-        // יצירת אובייקטי מודל
-        const donorModal = new bootstrap.Modal(document.getElementById('donorModal'));
-        const donorDetailsModal = new bootstrap.Modal(document.getElementById('donorDetailsModal'));
-        const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                // טעינת פרטי המוסד
-                const institutionResponse = await fetch('/api/institution/profile');
-
-                const institutionData = await institutionResponse.json();
-                document.getElementById('institutionName').textContent = institutionData.name;
-                document.getElementById('userName').textContent = institutionData.user_name || 'משתמש';
-
-                // טעינת סטטיסטיקות
-                const statsResponse = await fetch();fetch('/api/institution/donors/stats', {
-  headers: {
-    'X-User': JSON.stringify(user)
-  }
-});
-
-                const statsData = await statsResponse.json();
-                updateStatistics(statsData);
-
-                // טעינת רשימת תורמים
-                await loadDonors();
-
-                // אירועי לחיצה על כפתורים
-                document.getElementById('addDonorBtn').addEventListener('click', showAddDonorModal);
-                document.getElementById('saveDonorBtn').addEventListener('click', saveDonor);
-                document.getElementById('confirmDeleteBtn').addEventListener('click', deleteDonor);
-                document.getElementById('searchBtn').addEventListener('click', searchDonors);
-                document.getElementById('statusFilter').addEventListener('change', filterDonors);
-                document.getElementById('sortBy').addEventListener('change', sortDonors);
-                document.getElementById('logoutBtn').addEventListener('click', logout);
-                document.getElementById('donorDetailEditBtn').addEventListener('click', editCurrentDonor);
-                document.getElementById('donorDetailAddDonationBtn').addEventListener('click', addDonationForCurrentDonor);
-                document.getElementById('exportDonorsBtn').addEventListener('click', exportDonors);
-                document.getElementById('printDonorsBtn').addEventListener('click', printDonors);
-                document.getElementById('importDonorsBtn').addEventListener('click', importDonors);
-                document.getElementById('printDonationsBtn').addEventListener('click', printDonorDonations);
-
-                // אירוע חיפוש עם מקש Enter
-                document.getElementById('searchInput').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        searchDonors();
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading page data:', error);
-                alert('שגיאה בטעינת נתוני הדף');
-            }
-        });
-
-        // עדכון נתוני סטטיסטיקה
-        function updateStatistics(stats) {
-            document.getElementById('totalDonors').textContent = stats.total_donors || 0;
-            document.getElementById('newDonors').textContent = stats.new_donors || 0;
-            document.getElementById('avgDonation').textContent = '₪' + formatNumber(stats.avg_donation || 0);
-            document.getElementById('totalAmount').textContent = '₪' + formatNumber(stats.total_amount || 0);
-        }
-
-        // טעינת רשימת תורמים
-        async function loadDonors() {
-            document.getElementById('loadingSpinner').style.display = 'block';
-            document.getElementById('donorsContainer').style.display = 'none';
-            document.getElementById('noDonorsMessage').style.display = 'none';
-
-            try {
-                // const response = await fetch('/api/institution/donors');
-
-                const response = await fetch();fetch('/api/institution/donors/stats', {
-  headers: {
-    'X-User': JSON.stringify(user)
-  }
-});
-                donors = await response.json();
-                
-                if (donors.length === 0) {
-                    document.getElementById('noDonorsMessage').style.display = 'block';
-                } else {
-                    renderDonors(donors);
-                    document.getElementById('donorsContainer').style.display = 'flex';
-                }
-            } catch (error) {
-                console.error('Error loading donors:', error);
-                alert('שגיאה בטעינת רשימת התורמים');
-            } finally {
-                document.getElementById('loadingSpinner').style.display = 'none';
-            }
-        }
-
-        // הצגת התורמים בעמוד
-        function renderDonors(donorsToRender) {
-            const container = document.getElementById('donorsContainer');
-            container.innerHTML = '';
-
-            // חישוב עמודים וחיתוך הנתונים לעמוד הנוכחי
-            const totalPages = Math.ceil(donorsToRender.length / itemsPerPage);
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, donorsToRender.length);
-            const currentPageDonors = donorsToRender.slice(startIndex, endIndex);
-
-            // הצגת התורמים בעמוד הנוכחי
-            currentPageDonors.forEach(donor => {
-                const donorCard = document.createElement('div');
-                donorCard.className = 'col-md-3 mb-4';
-                
-                // חישוב תגיות
-                const tagsHtml = donor.tags ? donor.tags.split(',').map(tag => 
-                    `<span class="tag">${tag.trim()}</span>`).join('') : '';
-                    
-                // בדיקת סטטוס פעיל/לא פעיל
-                const statusBadge = donor.is_active ? 
-                    '<span class="badge bg-success">פעיל</span>' : 
-                    '<span class="badge bg-secondary">לא פעיל</span>';
-                
-                donorCard.innerHTML = `
-                    <div class="card h-100 donor-card">
-                        <div class="card-body text-center">
-                            <img src="https://via.placeholder.com/70" class="donor-image">
-                            <h5 class="card-title">${donor.first_name} ${donor.last_name}</h5>
-                            <div class="mb-2">${statusBadge}</div>
-                            <p class="card-text">
-                                ${donor.email ? `<i class="bi bi-envelope"></i> ${donor.email}<br>` : ''}
-                                ${donor.phone ? `<i class="bi bi-telephone"></i> ${donor.phone}<br>` : ''}
-                            </p>
-                            <div class="donor-stats">
-                                <div><strong>סה"כ תרומות:</strong> ${donor.donation_count || 0}</div>
-                                <div><strong>סה"כ סכום:</strong> ₪${formatNumber(donor.total_amount || 0)}</div>
-                            </div>
-                            <div class="mt-2">
-                                ${tagsHtml}
-                            </div>
-                            <div class="donor-actions">
-                                <button class="btn btn-sm btn-outline-primary view-donor-btn" data-id="${donor.id}">
-                                    <i class="bi bi-eye"></i> צפייה
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary edit-donor-btn" data-id="${donor.id}">
-                                    <i class="bi bi-pencil"></i> עריכה
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger delete-donor-btn" data-id="${donor.id}" data-name="${donor.first_name} ${donor.last_name}">
-                                    <i class="bi bi-trash"></i> מחיקה
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(donorCard);
-            });
-
-            // הוספת מאזיני אירועים לכפתורים
-            document.querySelectorAll('.view-donor-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    viewDonor(this.getAttribute('data-id'));
-                });
-            });
-
-            document.querySelectorAll('.edit-donor-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    editDonor(this.getAttribute('data-id'));
-                });
-            });
-
-            document.querySelectorAll('.delete-donor-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    showDeleteConfirmation(
-                        this.getAttribute('data-id'),
-                        this.getAttribute('data-name')
-                    );
-                });
-            });
-
-            // עדכון פאגינציה
-            updatePagination(donorsToRender.length, totalPages);
-        }
-
-        // עדכון פקדי הניווט בעמודים
-        function updatePagination(totalItems, totalPages) {
-            const pagination = document.getElementById('pagination');
-            pagination.innerHTML = '';
-            
-            if (totalPages <= 1) {
-                return;
-            }
-            
-            // כפתור קודם
-            const prevBtn = document.createElement('li');
-            prevBtn.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-            prevBtn.innerHTML = `<a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>`;
-            if (currentPage > 1) {
-                prevBtn.addEventListener('click', () => {
-                    currentPage--;
-                    renderDonors(donors);
-                });
-            }
-            pagination.appendChild(prevBtn);
-            
-            // מספרי עמודים
-            for (let i = 1; i <= totalPages; i++) {
-                const pageBtn = document.createElement('li');
-                pageBtn.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                pageBtn.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                pageBtn.addEventListener('click', () => {
-                    currentPage = i;
-                    renderDonors(donors);
-                });
-                pagination.appendChild(pageBtn);
-            }
-            
-            // כפתור הבא
-            const nextBtn = document.createElement('li');
-            nextBtn.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-            nextBtn.innerHTML = `<a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>`;
-            if (currentPage < totalPages) {
-                nextBtn.addEventListener('click', () => {
-                    currentPage++;
-                    renderDonors(donors);
-                });
-            }
-            pagination.appendChild(nextBtn);
-        }
-
-        // פתיחת המודל להוספת תורם חדש
-        function showAddDonorModal() {
-            currentDonorId = null;
-            document.getElementById('donorModalLabel').textContent = 'הוספת תורם חדש';
-            document.getElementById('donorForm').reset();
-            donorModal.show();
-        }
-
-        // פתיחת המודל לעריכת תורם קיים
-        function editDonor(id) {
-            currentDonorId = id;
-            document.getElementById('donorModalLabel').textContent = 'עריכת פרטי תורם';
-            
-            // איתור התורם ומילוי הטופס
-            const donor = donors.find(d => d.id == id);
-            if (!donor) return;
-            
-            document.getElementById('donorId').value = donor.id;
-            document.getElementById('firstName').value = donor.first_name;
-            document.getElementById('lastName').value = donor.last_name;
-            document.getElementById('email').value = donor.email || '';
-            document.getElementById('phone').value = donor.phone || '';
-            document.getElementById('address').value = donor.address || '';
-            document.getElementById('birthDate').value = donor.birth_date || '';
-            document.getElementById('gender').value = donor.gender || '';
-            document.getElementById('tags').value = donor.tags || '';
-            document.getElementById('notes').value = donor.notes || '';
-            document.getElementById('isActive').checked = donor.is_active;
-            
-            donorModal.show();
-        }
-
-        // עריכת התורם הנוכחי מתוך מודל פרטי תורם
-        function editCurrentDonor() {
-            if (!currentDonorId) return;
-            
-            donorDetailsModal.hide();
-            setTimeout(() => {
-                editDonor(currentDonorId);
-            }, 500);
-        }
-
-        // הוספת תרומה לתורם הנוכחי
-        function addDonationForCurrentDonor() {
-            // זו פונקציה ריקה שתוחלף בקוד אמיתי כשנבנה את דף ניהול התרומות
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // שמירת תורם (הוספה או עדכון)
-        async function saveDonor() {
-            const form = document.getElementById('donorForm');
-            
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            
-            const donorData = {
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                birth_date: document.getElementById('birthDate').value,
-                gender: document.getElementById('gender').value,
-                tags: document.getElementById('tags').value,
-                notes: document.getElementById('notes').value,
-                is_active: document.getElementById('isActive').checked
-            };
-            
-            try {
-                let url = '/api/institution/donors';
-                let method = 'POST';
-                
-                if (currentDonorId) {
-                    url = `/api/institution/donors/${currentDonorId}`;
-                    method = 'PUT';
-                }
-                
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(donorData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('שגיאה בשמירת הנתונים');
-                }
-                
-                donorModal.hide();
-                await loadDonors();
-            } catch (error) {
-                console.error('Error saving donor:', error);
-                alert('אירעה שגיאה בשמירת הנתונים. אנא נסה שוב.');
-            }
-        }
-
-        // צפייה בפרטי תורם
-        async function viewDonor(id) {
-            currentDonorId = id;
-            const donor = donors.find(d => d.id == id);
-            
-            if (!donor) return;
-            
-            // עדכון פרטי התורם במודל
-            document.getElementById('donorDetailName').textContent = `${donor.first_name} ${donor.last_name}`;
-            document.getElementById('donorDetailEmail').textContent = donor.email || 'אין דוא"ל';
-            document.getElementById('donorDetailPhone').textContent = donor.phone || 'אין טלפון';
-            document.getElementById('donorDetailAddress').textContent = donor.address || '-';
-            document.getElementById('donorDetailBirthDate').textContent = formatDate(donor.birth_date) || '-';
-            document.getElementById('donorDetailGender').textContent = getGenderHebrew(donor.gender) || '-';
-            document.getElementById('donorDetailStatus').textContent = donor.is_active ? 'פעיל' : 'לא פעיל';
-            document.getElementById('donorDetailJoinDate').textContent = formatDate(donor.created_at) || '-';
-            document.getElementById('donorDetailNotes').textContent = donor.notes || 'אין הערות';
-            
-            // עדכון תגיות
-            const tagsContainer = document.getElementById('donorDetailTags');
-            tagsContainer.innerHTML = '';
-            
-            if (donor.tags) {
-                const tags = donor.tags.split(',');
-                tags.forEach(tag => {
-                    const tagSpan = document.createElement('span');
-                    tagSpan.className = 'badge bg-light text-dark me-1';
-                    tagSpan.textContent = tag.trim();
-                    tagsContainer.appendChild(tagSpan);
-                });
-            }
-            
-            // טעינת תרומות התורם
-            try {
-                // הצגת מידע סטטיסטי ראשוני מהנתונים שכבר יש לנו
-                document.getElementById('donorDetailTotalDonations').textContent = donor.donation_count || 0;
-                document.getElementById('donorDetailTotalAmount').textContent = '₪' + formatNumber(donor.total_amount || 0);
-                document.getElementById('donorDetailLastDonation').textContent = formatDate(donor.last_donation_date) || '-';
-                document.getElementById('donorDetailAvgDonation').textContent = '₪' + formatNumber(
-                    donor.donation_count > 0 ? (donor.total_amount / donor.donation_count) : 0
-                );
-                
-                // טעינת רשימת התרומות המפורטת
-                document.getElementById('donorDonationsTable').innerHTML = '<tr><td colspan="6" class="text-center py-3">טוען נתוני תרומות...</td></tr>';
-                
-                const response = await fetch(`/api/institution/donors/${id}/donations`);
-                const donations = await response.json();
-                
-                updateDonorDonations(donations);
-            } catch (error) {
-                console.error('Error loading donor donations:', error);
-                document.getElementById('donorDonationsTable').innerHTML = '<tr><td colspan="6" class="text-center text-danger">שגיאה בטעינת התרומות</td></tr>';
-            }
-            
-            donorDetailsModal.show();
-        }
-
-        // עדכון טבלת תרומות התורם
-        function updateDonorDonations(donations) {
-            const table = document.getElementById('donorDonationsTable');
-            
-            if (!donations || donations.length === 0) {
-                table.innerHTML = '<tr><td colspan="6" class="text-center">אין תרומות להצגה</td></tr>';
-                return;
-            }
-            
-            table.innerHTML = '';
-            
-            donations.forEach(donation => {
-                const date = new Date(donation.donation_date);
-                const formattedDate = date.toLocaleDateString('he-IL');
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>₪${formatNumber(donation.amount)}</td>
-                    <td>${getPaymentMethodHebrew(donation.payment_method)}</td>
-                    <td>
-                        ${donation.receipt_number ? 
-                            `<a href="#" class="receipt-link" data-id="${donation.id}">${donation.receipt_number}</a>` : 
-                            '<span class="text-muted">לא הונפק</span>'
-                        }
-                    </td>
-                    <td>${donation.notes || '-'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary view-donation-btn" data-id="${donation.id}">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </td>
-                `;
-                table.appendChild(row);
-            });
-            
-            // הוספת מאזיני אירועים לכפתורים
-            document.querySelectorAll('.view-donation-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    viewDonation(this.getAttribute('data-id'));
-                });
-            });
-            
-            document.querySelectorAll('.receipt-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    viewReceipt(this.getAttribute('data-id'));
-                });
-            });
-        }
-
-        // הצגת מודל אישור מחיקה
-        function showDeleteConfirmation(id, name) {
-            currentDonorId = id;
-            document.getElementById('deleteDonorName').textContent = name;
-            deleteConfirmModal.show();
-        }
-
-        // מחיקת תורם
-        async function deleteDonor() {
-            if (!currentDonorId) return;
-            
-            try {
-                const response = await fetch(`/api/institution/donors/${currentDonorId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) {
-                    throw new Error('שגיאה במחיקת התורם');
-                }
-                
-                deleteConfirmModal.hide();
-                await loadDonors();
-            } catch (error) {
-                console.error('Error deleting donor:', error);
-                alert('אירעה שגיאה במחיקת התורם. אנא נסה שוב.');
-            }
-        }
-
-        // חיפוש תורמים
-        function searchDonors() {
-            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            
-            if (!searchTerm) {
-                renderDonors(donors);
-                return;
-            }
-            
-            const filteredDonors = donors.filter(donor => 
-                (donor.first_name + ' ' + donor.last_name).toLowerCase().includes(searchTerm) || 
-                (donor.email && donor.email.toLowerCase().includes(searchTerm)) || 
-                (donor.phone && donor.phone.includes(searchTerm)) ||
-                (donor.address && donor.address.toLowerCase().includes(searchTerm))
-            );
-            
-            currentPage = 1;
-            renderDonors(filteredDonors);
-        }
-
-        // סינון תורמים לפי סטטוס
-        function filterDonors() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            
-            if (statusFilter === 'all') {
-                renderDonors(donors);
-                return;
-            }
-            
-            const isActive = statusFilter === 'active';
-            const filteredDonors = donors.filter(donor => donor.is_active === isActive);
-            
-            currentPage = 1;
-            renderDonors(filteredDonors);
-        }
-
-        // מיון תורמים
-        function sortDonors() {
-            const sortBy = document.getElementById('sortBy').value;
-            let sortedDonors = [...donors];
-            
-            switch (sortBy) {
-                case 'name':
-                    sortedDonors.sort((a, b) => (a.first_name + ' ' + a.last_name).localeCompare(b.first_name + ' ' + b.last_name));
-                    break;
-                case 'date':
-                    sortedDonors.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                    break;
-                case 'amount':
-                    sortedDonors.sort((a, b) => (b.total_amount || 0) - (a.total_amount || 0));
-                    break;
-            }
-            
-            currentPage = 1;
-            renderDonors(sortedDonors);
-        }
-
-        // ייצוא רשימת תורמים לאקסל
-        function exportDonors() {
-            // פונקציה ריקה - תוחלף בקוד אמיתי
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // הדפסת רשימת תורמים
-        function printDonors() {
-            // פונקציה ריקה - תוחלף בקוד אמיתי
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // ייבוא תורמים מקובץ
-        function importDonors() {
-            // פונקציה ריקה - תוחלף בקוד אמיתי
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // הדפסת תרומות תורם
-        function printDonorDonations() {
-            // פונקציה ריקה - תוחלף בקוד אמיתי
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // צפייה בתרומה
-        function viewDonation(id) {
-            // פונקציה ריקה - תוחלף בקוד אמיתי
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // צפייה בקבלה
-        function viewReceipt(id) {
-            // פונקציה ריקה - תוחלף בקוד אמיתי
-            alert('פונקציה זו תהיה זמינה בקרוב');
-        }
-
-        // התנתקות
-        async function logout() {
-            try {
-                await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/login.html';
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        }
-
-        // פונקציות עזר
-
-        // פורמט מספר עם פסיקים
-        function formatNumber(number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        // פורמט תאריך
-        function formatDate(dateString) {
-            if (!dateString) return null;
-            
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return null;
-            
-            return date.toLocaleDateString('he-IL');
-        }
-
-        // המרת מגדר לעברית
-        function getGenderHebrew(gender) {
-            const genders = {
-                'male': 'זכר',
-                'female': 'נקבה',
-                'other': 'אחר'
-            };
-            return genders[gender] || gender;
-        }
-
-        // המרת אמצעי תשלום לעברית
-        function getPaymentMethodHebrew(paymentMethod) {
-            const methods = {
-                'credit': 'כרטיס אשראי',
-                'cash': 'מזומן',
-                'check': 'צ\'ק',
-                'bank': 'העברה בנקאית',
-                'other': 'אחר'
-            };
-            return methods[paymentMethod] || paymentMethod;
-        }
-    </script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/institution/donations.js"></script>
 </body>
 </html>
