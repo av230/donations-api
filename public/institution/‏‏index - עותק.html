@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לוח בקרה - ניהול מוסד</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .sidebar {
+            height: 100vh;
+            background-color: #343a40;
+            color: white;
+            position: fixed;
+            right: 0;
+            top: 0;
+        }
+        .sidebar-header {
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+        .sidebar-menu a {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-menu a.active {
+            border-right: 3px solid #007bff;
+        }
+        .sidebar-menu i {
+            margin-left: 10px;
+        }
+        .main-content {
+            margin-right: 250px;
+            padding: 20px;
+        }
+        .stats-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .stats-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .stats-card .number {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        .recent-donations {
+            margin-top: 30px;
+        }
+        .donor-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        .donor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .institution-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- סייד-בר (תפריט צד) -->
+    <div class="sidebar" style="width: 250px;">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-building me-2"></i> ניהול המוסד</h3>
+            <div class="text-muted small" id="institutionName">שם המוסד</div>
+        </div>
+        <ul class="sidebar-menu mt-4">
+            <li>
+                <a href="/institution" class="active">
+                    <i class="bi bi-speedometer2"></i> לוח בקרה
+                </a>
+            </li>
+            <li>
+                <a href="/institution/donors">
+                    <i class="bi bi-people"></i> ניהול תורמים
+                </a>
+            </li>
+            <li>
+                <a href="/institution/donations">
+                    <i class="bi bi-cash-stack"></i> ניהול תרומות
+                </a>
+            </li>
+            <li>
+                <a href="/institution/reports">
+                    <i class="bi bi-bar-chart"></i> דוחות
+                </a>
+            </li>
+            <li>
+                <a href="/institution/settings">
+                    <i class="bi bi-gear"></i> הגדרות
+                </a>
+            </li>
+            <li class="mt-5">
+                <a href="#" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i> התנתקות
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- תוכן ראשי -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>לוח בקרה</h2>
+            <div class="user-info">
+                <span>שלום, </span>
+                <span class="fw-bold" id="userName">שם המשתמש</span>
+                <img src="https://via.placeholder.com/32" class="rounded-circle ms-2" alt="User" width="32" height="32">
+            </div>
+        </div>
+
+        <!-- מידע על המוסד -->
+        <div class="institution-info" id="institutionInfo">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-info-circle me-2"></i>פרטי המוסד</h5>
+                    <div id="institutionDetails">
+                        <p><strong>סוג מוסד:</strong> <span id="institutionType">-</span></p>
+                        <p><strong>מספר רישום:</strong> <span id="registrationNumber">-</span></p>
+                        <p><strong>איש קשר:</strong> <span id="contactName">-</span></p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h5><i class="bi bi-box me-2"></i>פרטי חבילה</h5>
+                    <div id="packageDetails">
+                        <p><strong>סוג חבילה:</strong> <span id="packageType">-</span></p>
+                        <p><strong>מספר משתמשים מקסימלי:</strong> <span id="maxUsers">-</span></p>
+                        <a href="/institution/upgrade" class="btn btn-outline-primary btn-sm mt-2">שדרוג חבילה</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- קלפי סטטיסטיקה -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card bg-primary text-white">
+                    <div class="icon"><i class="bi bi-people"></i></div>
+                    <div class="number" id="totalDonors">0</div>
+                    <div>תורמים פעילים</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card bg-success text-white">
+                    <div class="icon"><i class="bi bi-cash-stack"></i></div>
+                    <div class="number" id="totalDonations">0</div>
+                    <div>תרומות החודש</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card bg-info text-white">
+                    <div class="icon"><i class="bi bi-currency-shekel"></i></div>
+                    <div class="number" id="totalAmount">₪0</div>
+                    <div>סה"כ תרומות החודש</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card bg-warning text-dark">
+                    <div class="icon"><i class="bi bi-graph-up"></i></div>
+                    <div class="number" id="averageDonation">₪0</div>
+                    <div>תרומה ממוצעת</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- גרף תרומות לפי חודשים -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">תרומות לפי חודשים</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="donationsChart" style="height: 300px;">
+                            <!-- כאן יהיה הגרף -->
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">טוען...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">תורמים מובילים</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="topDonorsList">
+                            <!-- רשימת תורמים מובילים תוצג כאן -->
+                            <li class="list-group-item text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">טוען...</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- תרומות אחרונות -->
+        <div class="recent-donations">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">תרומות אחרונות</h5>
+                    <a href="/institution/donations" class="btn btn-sm btn-outline-primary">הצג הכל</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">תורם</th>
+                                    <th scope="col">תאריך</th>
+                                    <th scope="col">סכום</th>
+                                    <th scope="col">אמצעי תשלום</th>
+                                    <th scope="col">קבלה</th>
+                                    <th scope="col">פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentDonationsTable">
+                                <!-- נתוני התרומות יוזנו כאן ע"י JavaScript -->
+                                <tr>
+                                    <td colspan="6" class="text-center py-3">טוען נתוני תרומות...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- כפתור להוספת תרומה מהירה -->
+        <div class="floating-btn position-fixed" style="bottom: 30px; left: 30px;">
+            <button class="btn btn-primary btn-lg rounded-circle shadow" id="quickDonationBtn">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- מודל להוספת תרומה מהירה -->
+    <div class="modal fade" id="quickDonationModal" tabindex="-1" aria-labelledby="quickDonationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quickDonationModalLabel">הוספת תרומה מהירה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="סגור"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quickDonationForm">
+                        <div class="mb-3">
+                            <label for="donorSelect" class="form-label">בחר תורם</label>
+                            <select class="form-select" id="donorSelect" required>
+                                <option value="">בחר תורם...</option>
+                                <!-- אפשרויות יוזנו ע"י JavaScript -->
+                            </select>
+                            <div class="form-text">
+                                <a href="#" id="addNewDonorLink">הוסף תורם חדש</a>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="donationAmount" class="form-label">סכום התרומה</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₪</span>
+                                <input type="number" class="form-control" id="donationAmount" min="1" step="1" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="paymentMethod" class="form-label">אמצעי תשלום</label>
+                            <select class="form-select" id="paymentMethod" required>
+                                <option value="">בחר...</option>
+                                <option value="credit">כרטיס אשראי</option>
+                                <option value="cash">מזומן</option>
+                                <option value="check">צ'ק</option>
+                                <option value="bank">העברה בנקאית</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="donationNotes" class="form-label">הערות</label>
+                            <textarea class="form-control" id="donationNotes" rows="2"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="sendReceipt">
+                            <label class="form-check-label" for="sendReceipt">
+                                שלח קבלה במייל לתורם
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="button" class="btn btn-primary" id="saveDonationBtn">שמור תרומה</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/auth.js"></script>
+<script src="/js/institution/dashboard.js"></script>
+    <script>
+        // יצירת המודלים
+        const quickDonationModal = new bootstrap.Modal(document.getElementById('quickDonationModal'));
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // טעינת נתוני המוסד
+                const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+
+if (!user || !user.institution_id) {
+  window.location.href = '/login';
+  return;
+}
+
+const institutionResponse = await fetch(`/api/institutions/${user.institution_id}`);
+if (!institutionResponse.ok) throw new Error('Failed to load institution data');
+const institutionData = await institutionResponse.json();
+
+                // עדכון פרטי המוסד
+                updateInstitutionInfo(institutionData);
+                
+                // טעינת סטטיסטיקות
+                const statsResponse = await fetch('/api/institution/stats', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
+                if (!statsResponse.ok) throw new Error('Failed to load stats');
+                const statsData = await statsResponse.json();
+                
+                // עדכון קלפי הסטטיסטיקה
+                updateStatistics(statsData);
+                
+                // טעינת תרומות אחרונות
+                const donationsResponse = await fetch('/api/institution/donations/recent', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
+                if (!donationsResponse.ok) throw new Error('Failed to load recent donations');
+                const donationsData = await donationsResponse.json();
+                
+                // עדכון טבלת התרומות האחרונות
+                updateRecentDonations(donationsData);
+                
+                // טעינת תורמים מובילים
+                const topDonorsResponse = await fetch('/api/institution/donors/top', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
+                if (!topDonorsResponse.ok) throw new Error('Failed to load top donors');
+                const topDonorsData = await topDonorsResponse.json();
+                
+                // עדכון רשימת התורמים המובילים
+                updateTopDonors(topDonorsData);
+                
+                // יצירת גרף התרומות לפי חודשים
+                createDonationsChart(statsData.monthly_donations || []);
+                
+                // טעינת רשימת תורמים עבור המודל
+                loadDonorsList();
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                alert('שגיאה בטעינת נתוני לוח הבקרה');
+            }
+            
+            // אירוע כפתור הוספת תרומה מהירה
+            document.getElementById('quickDonationBtn').addEventListener('click', function() {
+                document.getElementById('quickDonationForm').reset();
+                quickDonationModal.show();
+            });
+            
+            // אירוע שמירת תרומה מהירה
+            document.getElementById('saveDonationBtn').addEventListener('click', saveDonation);
+            
+            // אירוע התנתקות
+            document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                    window.location.href = '/login.html';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+        });
+        
+        // עדכון פרטי המוסד
+        function updateInstitutionInfo(institutionData) {
+            document.getElementById('institutionName').textContent = institutionData.name;
+            document.getElementById('institutionType').textContent = institutionData.institution_type;
+            document.getElementById('registrationNumber').textContent = institutionData.registration_number;
+            document.getElementById('contactName').textContent = institutionData.contact_name;
+            document.getElementById('packageType').textContent = getPackageNameHebrew(institutionData.package_type);
+            document.getElementById('maxUsers').textContent = institutionData.max_users;
+            document.getElementById('userName').textContent = institutionData.user_name || 'משתמש';
+        }
+        
+        // עדכון סטטיסטיקות
+        function updateStatistics(statsData) {
+            document.getElementById('totalDonors').textContent = statsData.total_donors || 0;
+            document.getElementById('totalDonations').textContent = statsData.total_donations || 0;
+            document.getElementById('totalAmount').textContent = '₪' + formatNumber(statsData.total_amount || 0);
+            document.getElementById('averageDonation').textContent = '₪' + formatNumber(statsData.average_donation || 0);
+        }
+        
+        // עדכון תרומות אחרונות
+        function updateRecentDonations(donations) {
+            const table = document.getElementById('recentDonationsTable');
+            
+            if (!donations || donations.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" class="text-center">אין תרומות להצגה</td></tr>';
+                return;
+            }
+            
+            table.innerHTML = '';
+            
+            donations.forEach(donation => {
+                const date = new Date(donation.donation_date);
+                const formattedDate = date.toLocaleDateString('he-IL');
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${donation.donor_name}</td>
+                    <td>${formattedDate}</td>
+                    <td>₪${formatNumber(donation.amount)}</td>
+                    <td>${getPaymentMethodHebrew(donation.payment_method)}</td>
+                    <td>
+                        ${donation.receipt_number ? 
+                            `<a href="#" class="receipt-link" data-id="${donation.id}">${donation.receipt_number}</a>` : 
+                            '<span class="text-muted">לא הונפק</span>'
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary view-donation" data-id="${donation.id}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+        
+        // עדכון רשימת תורמים מובילים
+        function updateTopDonors(donors) {
+            const list = document.getElementById('topDonorsList');
+            
+            if (!donors || donors.length === 0) {
+                list.innerHTML = '<li class="list-group-item text-center">אין נתוני תורמים להצגה</li>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            
+            donors.forEach((donor, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                // צבע רקע לשלושת המובילים
+                if (index < 3) {
+                    li.classList.add('bg-light');
+                }
+                
+                li.innerHTML = `
+                    <div>
+                        <span class="badge bg-${index === 0 ? 'warning' : index === 1 ? 'secondary' : index === 2 ? 'info' : 'light text-dark'} me-2">${index + 1}</span>
+                        <span class="fw-bold">${donor.donor_name}</span>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">₪${formatNumber(donor.total_amount)}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
+        
+        // יצירת גרף תרומות לפי חודשים
+        function createDonationsChart(data) {
+            const ctx = document.createElement('canvas');
+            document.getElementById('donationsChart').innerHTML = '';
+            document.getElementById('donationsChart').appendChild(ctx);
+            
+            const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            const amounts = new Array(12).fill(0);
+            const counts = new Array(12).fill(0);
+            
+            // מילוי נתוני הגרף
+            data.forEach(item => {
+                const monthIndex = item.month - 1; // מכיוון שהאינדקסים מתחילים מ-0
+                amounts[monthIndex] = item.total_amount;
+                counts[monthIndex] = item.count;
+            });
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'סכום תרומות',
+                            data: amounts,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'מספר תרומות',
+                            data: counts,
+                            type: 'line',
+                            fill: false,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'סכום תרומות (₪)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'מספר תרומות'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // טעינת רשימת תורמים עבור המודל
+        async function loadDonorsList() {
+            const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+            if (!user || !user.institution_id) return;
+            try {
+                const response = await fetch('/api/institution/donors', {
+    headers: {
+      'x-user': JSON.stringify({ institution_id: user.institution_id })
+    }
+  });
+
+                if (!response.ok) throw new Error('Failed to load donors');
+                const donors = await response.json();
+                
+                const select = document.getElementById('donorSelect');
+                select.innerHTML = '<option value="">בחר תורם...</option>';
+                
+                donors.forEach(donor => {
+                    const option = document.createElement('option');
+                    option.value = donor.id;
+                    option.textContent = `${donor.first_name} ${donor.last_name}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading donors:', error);
+            }
+        }
+        
+        // שמירת תרומה מהירה
+        async function saveDonation() {
+            const form = document.getElementById('quickDonationForm');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const donationData = {
+                donor_id: document.getElementById('donorSelect').value,
+                amount: document.getElementById('donationAmount').value,
+                payment_method: document.getElementById('paymentMethod').value,
+                notes: document.getElementById('donationNotes').value,
+                send_receipt: document.getElementById('sendReceipt').checked
+            };
+            
+            try {
+                const response = await fetch('/api/institution/donations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        
+                    },
+                    body: JSON.stringify(donationData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('שגיאה בשמירת התרומה');
+                }
+                
+                quickDonationModal.hide();
+                
+                // רענון הנתונים בדף
+                window.location.reload();
+            } catch (error) {
+                console.error('Error saving donation:', error);
+                alert('אירעה שגיאה בשמירת התרומה. אנא נסה שוב.');
+            }
+        }
+        
+        // עזרים
+        
+        // פורמט מספר עם פסיקים
+        function formatNumber(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // המרת סוג חבילה לעברית
+        function getPackageNameHebrew(packageType) {
+            const packages = {
+                'premium': 'פרימיום',
+                'basic': 'בסיסי',
+                'free': 'חינם'
+            };
+            return packages[packageType] || packageType;
+        }
+        
+        // המרת אמצעי תשלום לעברית
+        function getPaymentMethodHebrew(paymentMethod) {
+            const methods = {
+                'credit': 'כרטיס אשראי',
+                'cash': 'מזומן',
+                'check': 'צ\'ק',
+                'bank': 'העברה בנקאית',
+                'other': 'אחר'
+            };
+            return methods[paymentMethod] || paymentMethod;
+        }
+    </script>
+</body>
+</html>
