@@ -340,10 +340,17 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // טעינת נתוני המוסד
-                const institutionResponse = await fetch('/api/institution/profile');
-                if (!institutionResponse.ok) throw new Error('Failed to load institution data');
-                const institutionData = await institutionResponse.json();
-                
+                const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+
+if (!user || !user.institution_id) {
+  window.location.href = '/login';
+  return;
+}
+
+const institutionResponse = await fetch(`/api/institutions/${user.institution_id}`);
+if (!institutionResponse.ok) throw new Error('Failed to load institution data');
+const institutionData = await institutionResponse.json();
+
                 // עדכון פרטי המוסד
                 updateInstitutionInfo(institutionData);
                 
