@@ -572,7 +572,115 @@ app.get('/institutions', async (req, res) => {
 app.get('/institution/donors', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'institution', 'donors.html'));
 });
+// Add these routes to your server.js file (paste.txt)
+// Right after your existing API routes, before the HTML routes
 
+// API endpoints for institution dashboard
+app.get('/api/institution/profile', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers['x-user'] || '{}');
+    const institutionId = user.institution_id;
+    
+    if (!institutionId) {
+      return res.status(400).json({ error: 'Missing institution ID' });
+    }
+    
+    const result = await pool.query('SELECT * FROM institutions WHERE id = $1', [institutionId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Institution not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ שגיאה בשליפת פרופיל המוסד:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+// Institution donors endpoints
+app.get('/api/institution/donors', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers['x-user'] || '{}');
+    const institutionId = user.institution_id;
+    
+    if (!institutionId) {
+      return res.status(400).json({ error: 'Missing institution ID' });
+    }
+    
+    const result = await pool.query(`
+      SELECT d.*, COUNT(don.id) as donation_count, SUM(don.amount) as total_amount,
+      MAX(don.date) as last_donation_date
+      FROM donors d
+      LEFT JOIN donations don ON d.id = don.donor_id
+      WHERE d.institution_id = $1
+      GROUP BY d.id
+      ORDER BY d.name
+    `, [institutionId]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('❌ שגיאה בשליפת תורמים:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+app.get('/api/institution/donors/stats', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers['x-user'] || '{}');
+    const institutionId = user.institution_id;
+    
+    if (!institutionId) {
+      return res.status(400).json({ error: 'Missing institution ID' });
+    }
+    
+    const totalDonors = await pool.query('SELECT COUNT(*) FROM donors WHERE institution_id = $1', [institutionId]);
+    const newDonors = await pool.query(`
+      SELECT COUNT(*) FROM donors 
+      WHERE institution_id = $1 AND created_at >= date_trunc('month', CURRENT_DATE)
+    `, [institutionId]);
+    
+    const donationStats = await pool.query(`
+      SELECT COUNT(*) as total_donations, SUM(amount) as total_amount, AVG(amount) as avg_donation
+      FROM donations 
+      WHERE institution_id = $1
+    `, [institutionId]);
+    
+    res.json({
+      total_donors: parseInt(totalDonors.rows[0].count),
+      new_donors: parseInt(newDonors.rows[0].count),
+      total_donations: parseInt(donationStats.rows[0].total_donations || 0),
+      total_amount: parseFloat(donationStats.rows[0].total_amount || 0),
+      avg_donation: parseFloat(donationStats.rows[0].avg_donation || 0)
+    });
+  } catch (err) {
+    console.error('❌ שגיאה בשליפת סטטיסטיקות תורמים:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+app.get('/api/institution/donors/:id/donations', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = JSON.parse(req.headers['x-user'] || '{}');
+    const institutionId = user.institution_id;
+    
+    if (!institutionId) {
+      return res.status(400).json({ error: 'Missing institution ID' });
+    }
+    
+    const result = await pool.query(`
+      SELECT * FROM donations
+      WHERE donor_id = $1 AND institution_id = $2
+      ORDER BY date DESC
+    `, [id, institutionId]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('❌ שגיאה בשליפת תרומות של התורם:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
 // דף ניהול תרומות למוסד
 app.get('/institution/donations', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'institution', 'donations.html'));
