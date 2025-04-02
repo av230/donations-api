@@ -418,3 +418,31 @@ app.listen(PORT, () => {
 });
 
 module.exports = app; // ייצוא האפליקציה עבור בדיקות
+
+
+// נקודת קצה להתחברות
+app.post('/api/auth/login', async (req, res) => {
+  // קוד ההתחברות...
+});
+
+// נקודת קצה להתנתקות
+app.post('/api/auth/logout', (req, res) => {
+  res.json({ success: true });
+});
+
+// ניתובים לדפי HTML
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+});
+
+app.get('/admin/institutions', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'institutions.html'));
+});
+
+app.get('/institution', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'institution', 'index.html'));
+});
