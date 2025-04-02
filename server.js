@@ -1024,5 +1024,13 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 השרת פועל בכתובת: http://localhost:${PORT}`);
 });
+// דף ניהול תורמים למוסד
+app.get('/institution/donors', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'institution', 'donors.html'));
+});
 
+// דף ניהול תרומות למוסד
+app.get('/institution/donations', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'institution', 'donations.html'));
+});
 module.exports = app; // ייצוא האפליקציה עבור בדיקות
