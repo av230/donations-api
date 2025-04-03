@@ -68,21 +68,27 @@ async function loadInstitutionData(institutionId) {
         // בפרויקט אמיתי, יש לפנות לשרת לקבלת הנתונים
         // const response = await fetch(`/api/institutions/${institutionId}`);
         // institutionData = await response.json();
+        const response = await fetch('/api/institution/profile', {
+          headers: {
+            'x-user': JSON.stringify(user)
+          }
+        });
+        institutionData = await response.json();
         
         // לצורך הדגמה, ניצור נתונים לדוגמה
-        institutionData = {
-            id: institutionId,
-            name: 'עמותת אור לילד',
-            contact_name: 'ישראל ישראלי',
-            contact_phone: '052-1234567',
-            address: 'רחוב הרצל 10, תל אביב',
-            website: 'https://example.org',
-            institution_type: 'עמותה',
-            registration_number: '580123456',
-            authorization_level: 'admin',
-            max_users: 50,
-            package_type: 'premium'
-        };
+        // institutionData = {
+        //     id: institutionId,
+        //     name: 'עמותת אור לילד',
+        //     contact_name: 'ישראל ישראלי',
+        //     contact_phone: '052-1234567',
+        //     address: 'רחוב הרצל 10, תל אביב',
+        //     website: 'https://example.org',
+        //     institution_type: 'עמותה',
+        //     registration_number: '580123456',
+        //     authorization_level: 'admin',
+        //     max_users: 50,
+        //     package_type: 'premium'
+        // };
         
         // עדכון פרטי המוסד בדף
         document.getElementById('institutionName').textContent = institutionData.name;
@@ -240,15 +246,15 @@ function updateRecentDonationsTable() {
 async function loadTopDonors(institutionId) {
     try {
         // בפרויקט אמיתי, יש לפנות לשרת לקבלת הנתונים
-        // const response = await fetch(`/api/institutions/${institutionId}/donors/top`);
-        // topDonors = await response.json();
+        const response = await fetch(`/api/institutions/${institutionId}/donors/top`);
+        topDonors = await response.json();
         
         // לצורך הדגמה, ניצור נתונים לדוגמה
-        topDonors = [
-            { id: 1, name: 'ישראל ישראלי', total_amount: 5000 },
-            { id: 3, name: 'שרה לוי', total_amount: 4500 },
-            { id: 2, name: 'חיים כהן', total_amount: 2000 }
-        ];
+        // topDonors = [
+        //     { id: 1, name: 'ישראל ישראלי', total_amount: 5000 },
+        //     { id: 3, name: 'שרה לוי', total_amount: 4500 },
+        //     { id: 2, name: 'חיים כהן', total_amount: 2000 }
+        // ];
         
         // עדכון רשימת התורמים המובילים
         updateTopDonorsList();
@@ -301,12 +307,12 @@ function updateTopDonorsList() {
 async function loadChartData(institutionId) {
     try {
         // בפרויקט אמיתי, יש לפנות לשרת לקבלת הנתונים
-        // const response = await fetch(`/api/institutions/${institutionId}/donations/monthly`);
-        // monthlyDonationsData = await response.json();
+        const response = await fetch(`/api/institutions/${institutionId}/donations/monthly`);
+        monthlyDonationsData = await response.json();
         
         // לצורך הדגמה, ניצור נתונים לדוגמה
-        const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-        const currentMonth = new Date().getMonth();
+        // const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+        // const currentMonth = new Date().getMonth();
         
         monthlyDonationsData = months.map((month, index) => {
             // נייצר נתונים אקראיים, עם ערכים גבוהים יותר בחודשים האחרונים

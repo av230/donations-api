@@ -84,12 +84,13 @@ async function loadDonors(institutionId) {
     try {
         // בפרויקט אמיתי נשתמש ב-API
         // כרגע ניצור נתונים לדוגמה
-        donors = [
-            { id: 1, name: 'ישראל ישראלי', email: 'israel@example.com', phone: '054-1234567' },
-            { id: 2, name: 'חיים כהן', email: 'haim@example.com', phone: '050-7654321' },
-            { id: 3, name: 'שרה לוי', email: 'sarah@example.com', phone: '052-9876543' }
-        ];
-        
+        const response = await fetch('/api/institution/donors', {
+            headers: {
+              'x-user': JSON.stringify(user)
+            }
+          });
+          donors = await response.json();
+          
         // מילוי התורמים בתיבת הבחירה
         const donorSelect = document.getElementById('donorSelect');
         donorSelect.innerHTML = '<option value="">בחר תורם...</option>';
@@ -112,46 +113,53 @@ async function loadDonations(institutionId) {
     showLoader(true);
     
     try {
-        // בפרויקט אמיתי נשתמש ב-API
-        // כרגע ניצור נתונים לדוגמה
-        const today = new Date();
-        const oneDayMs = 24 * 60 * 60 * 1000;
-        
-        donations = [
-            {
-                id: 1,
-                donor_id: 1,
-                donor_name: 'ישראל ישראלי',
-                amount: 1000,
-                date: new Date(today - oneDayMs * 2),
-                payment_method: 'credit',
-                receipt_number: 'REC-2023-001',
-                status: 'completed',
-                notes: 'תרומה חודשית קבועה'
-            },
-            {
-                id: 2,
-                donor_id: 2,
-                donor_name: 'חיים כהן',
-                amount: 500,
-                date: new Date(today - oneDayMs * 5),
-                payment_method: 'bank',
-                receipt_number: 'REC-2023-002',
-                status: 'completed',
-                notes: 'תרומה חד פעמית'
-            },
-            {
-                id: 3,
-                donor_id: 3,
-                donor_name: 'שרה לוי',
-                amount: 2500,
-                date: new Date(today - oneDayMs * 10),
-                payment_method: 'check',
-                receipt_number: null,
-                status: 'pending',
-                notes: 'תרומה לפרויקט מיוחד'
+        const response = await fetch('/api/institution/donations/recent', {
+            headers: {
+              'x-user': JSON.stringify(user)
             }
-        ];
+          });
+          donors = await response.json();
+          
+        // // בפרויקט אמיתי נשתמש ב-API
+        // // כרגע ניצור נתונים לדוגמה
+        // const today = new Date();
+        // const oneDayMs = 24 * 60 * 60 * 1000;
+        
+        // donations = [
+        //     {
+        //         id: 1,
+        //         donor_id: 1,
+        //         donor_name: 'ישראל ישראלי',
+        //         amount: 1000,
+        //         date: new Date(today - oneDayMs * 2),
+        //         payment_method: 'credit',
+        //         receipt_number: 'REC-2023-001',
+        //         status: 'completed',
+        //         notes: 'תרומה חודשית קבועה'
+        //     },
+        //     {
+        //         id: 2,
+        //         donor_id: 2,
+        //         donor_name: 'חיים כהן',
+        //         amount: 500,
+        //         date: new Date(today - oneDayMs * 5),
+        //         payment_method: 'bank',
+        //         receipt_number: 'REC-2023-002',
+        //         status: 'completed',
+        //         notes: 'תרומה חד פעמית'
+        //     },
+        //     {
+        //         id: 3,
+        //         donor_id: 3,
+        //         donor_name: 'שרה לוי',
+        //         amount: 2500,
+        //         date: new Date(today - oneDayMs * 10),
+        //         payment_method: 'check',
+        //         receipt_number: null,
+        //         status: 'pending',
+        //         notes: 'תרומה לפרויקט מיוחד'
+        //     }
+        // ];
         
         // עדכון סטטיסטיקות
         updateStatistics();
